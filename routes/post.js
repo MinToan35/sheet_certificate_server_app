@@ -8,6 +8,13 @@ router.post("/", verifyToken, checkAdmin, async (req, res) => {
   const { items, postName } = req.body;
 
   try {
+    const user = await Post.findOne({ postName });
+    if (user) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Tên file đã tồn tại" });
+    }
+
     const newPost = new Post({
       items,
       userId: req.userId,

@@ -16,6 +16,7 @@ const postSchema = new Schema(
     },
     postName: {
       type: String,
+      unique: true,
     },
     postId: {
       type: String,
