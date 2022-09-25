@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 const verifyToken = require("../middleware/auth");
 
 const User = require("../models/User");
+const checkAdmin = require("../middleware/role");
 
 router.get("/", verifyToken, async (req, res) => {
   try {
@@ -20,8 +21,25 @@ router.get("/", verifyToken, async (req, res) => {
   }
 });
 
+router.get("/users", verifyToken, checkAdmin, async (req, res) => {
+  try {
+    const user = await User.find({ role: "user" })
+      .select("username")
+      .select("_id");
+
+    if (!user)
+      return res
+        .status(400)
+        .json({ success: false, message: "Không có tài khoản nào" });
+    res.json({ success: true, users: user });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+});
+
 // @desc Register user
-router.post("/register", async (req, res) => {
+router.post("/register", verifyToken, checkAdmin, async (req, res) => {
   const { username, password, role } = req.body;
 
   if (!username || !password)
@@ -93,6 +111,23 @@ router.post("/login", async (req, res) => {
       return res
         .status(400)
         .json({ success: false, message: "Mật khẩu không chính xác" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+});
+
+router.delete("/:id", verifyToken, checkAdmin, async (req, res) => {
+  try {
+    const deletedUser = await User.findOneAndDelete({
+      _id: req.params.id,
+    }).select("-password");
+    if (!deletedUser)
+      return res
+        .status(400)
+        .json({ success: false, message: "Không tồn tại người dùng này" });
+    console.log(deletedUser);
+    res.json({ success: true, user: deletedUser });
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: "Internal server error" });

@@ -14,6 +14,12 @@ const postSchema = new Schema(
     edit: {
       type: String,
     },
+    postName: {
+      type: String,
+    },
+    postId: {
+      type: String,
+    },
   },
   {
     timestamps: true,
